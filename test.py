@@ -1,9 +1,12 @@
 import http.client
 import json
+import sqlite3
 
 class sunabar_api:
     def conn_initialize():
-        return http.client.HTTPSConnection("api.sunabar.gmo-aozora.com") #ここにAPIドメインを入れる
+        apiDomainName = "api.sunabar.gmo-aozora.com"
+
+        return http.client.HTTPSConnection(apiDomainName)
 
     def headers_initialize(accessToken):
         headers = {
@@ -76,6 +79,11 @@ class sunabar_api:
         return [data_json.get('paymentAmount'), data_json.get('errorMessage')]
 
 class db_action:
+    def conn_initialize():
+        dbname = "chokinsei_db.db"
+
+        return sqlite3.connect(dbname)
+
     def get_token():
         accessToken = "" #ここにトークンを入れる
 
@@ -109,27 +117,32 @@ class game_action:
                     case "0":
                         print("さようなら！\n")
                         exit(0)
-                continue
-            
-            continue
+                    case _:
+                        actionSelect = ""
 
         return 0
     
-    def game_initialize():
-        game_action.token_status_check()
-
-        if not sunabar_api.get_accounts_info(db_action.get_token())[1]:
+    def spAccount_status_check():
+        while not sunabar_api.get_accounts_info(db_action.get_token())[1]:
             actionSelect = ""
             while not actionSelect:
                 game_action.show_spAccount_not_found_message()
                 actionSelect = input()
 
-            match actionSelect:
-                case "1":
-                    return 1
-                case "0":
-                    print("さようなら！\n")
-                    exit(0) 
+                match actionSelect:
+                    case "1":
+                        break
+                    case "0":
+                        print("さようなら！\n")
+                        exit(0)
+                    case _:
+                        actionSelect = ""
+        
+        return 0
+
+    def game_initialize():
+        game_action.token_status_check()
+        game_action.spAccount_status_check()
 
         return 0
 
@@ -172,19 +185,26 @@ class game_action:
             game_action.show_item_list()
             itemSelect = input()
 
-        match itemSelect:
-            case "1":
-                paymentAmount = 50
-            case "2":
-                paymentAmount = 100
-            case "3":
-                paymentAmount = 500
-            case "4":
-                paymentAmount = 999999
-            case "0":
-                paymentAmount = 0
-                print("キャンセルされました！\n")
-                return 0
+            match itemSelect:
+                case "1":
+                    paymentAmount = 50
+                    break
+                case "2":
+                    paymentAmount = 100
+                    break
+                case "3":
+                    paymentAmount = 500
+                    break
+                case "4":
+                    paymentAmount = 999999
+                    break
+                case "0":
+                    paymentAmount = 0
+                    print("キャンセルされました！\n")
+                    return 0
+                case _:
+                    itemSelect = ""
+
         
         return_status = sunabar_api.transfer_saving(db_action.get_token(), mainAccountId, appAccountId, str(paymentAmount))
         if return_status[0] == str(paymentAmount):
@@ -200,23 +220,24 @@ class game_action:
             game_action.show_main_menu()
             actionSelect = input()
         
-        match actionSelect:
-            case "1":
-                game_action.show_balances()
-            case "2":
-                game_action.item_purchase()
-            case "0":
-                print("さようなら！\n")
-                exit(0)
+            match actionSelect:
+                case "1":
+                    game_action.show_balances()
+                    actionSelect = ""
+                case "2":
+                    game_action.item_purchase()
+                    actionSelect = ""
+                case "0":
+                    print("さようなら！\n")
+                    exit(0)
+                case _:
+                    actionSelect = ""
         
         return 0
     
     def run_game():
-        while game_action.game_initialize() != 0:
-            continue
-
-        while game_action.main_menu_select() == 0:
-            continue
+        game_action.game_initialize()
+        game_action.main_menu_select()
         
         return 0
 
