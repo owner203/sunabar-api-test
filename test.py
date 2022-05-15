@@ -36,8 +36,11 @@ class sunabar_api:
         else:
             mainAccountId = data_json.get('spAccounts')[0].get('accountId')
             appAccountId = data_json.get('spAccounts')[1].get('accountId')
-
-        return [mainAccountId, appAccountId]
+        
+        res.close()
+        conn.close()
+        
+        return (mainAccountId, appAccountId)
 
     def get_balances(accessToken, accountId):
         conn = sunabar_api.conn_initialize()
@@ -51,9 +54,12 @@ class sunabar_api:
         data_json = json.loads(data.decode("utf-8"))
         #print(json.dumps(data_json, ensure_ascii=False, indent=2))
 
+        res.close()
+        conn.close()
+        
         return data_json.get('spAccountBalances')[0].get('odBalance')
 
-    def transfer_saving(accessToken, debitSpAccountId, depositSpAccountId, paymentAmount): #親口座 → 貯金星
+    def transfer_saving(accessToken, debitSpAccountId, depositSpAccountId, paymentAmount):
         conn = sunabar_api.conn_initialize()
         headers = sunabar_api.headers_initialize(accessToken)
 
@@ -71,23 +77,92 @@ class sunabar_api:
         data_str = str(data.decode("utf-8"))
         data_str = data_str.replace('\"currencyName\"', ',\"currencyName\"')
         #返り値のデータに、「"currencyName"」の直前のところで「,」が一個抜けてる、というバグがあるので、対応する
-        #print(data_str)
 
         data_json = json.loads(data_str)
         #print(json.dumps(data_json, ensure_ascii=False, indent=2))
 
+        res.close()
+        conn.close()
+        
         return [data_json.get('paymentAmount'), data_json.get('errorMessage')]
 
 class db_action:
     def conn_initialize():
-        dbname = "chokinsei_db.db"
+        dbname = "chokinsei_db.sqlite3"
 
         return sqlite3.connect(dbname)
 
     def get_token():
-        accessToken = "" #ここにトークンを入れる
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
 
-        return accessToken
+        cur.execute('SELECT value FROM player_data WHERE key="access_token"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        
+        return data[0][0]
+
+    def get_main_account_id():
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('SELECT value FROM player_data WHERE key="main_account_id"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        
+        return data[0][0]
+
+    def get_app_account_id():
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('SELECT value FROM player_data WHERE key="app_account_id"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+        
+        return data[0][0]
+
+    def get_last_balance():
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('SELECT value FROM player_data WHERE key="last_balance"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+            
+        return data[0][0]
+    
+    def get_last_login():
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('SELECT value FROM player_data WHERE key="last_login"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+            
+        return data[0][0]
+
+    def get_goal_value():
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('SELECT value FROM player_data WHERE key="goal_value"')
+        data = cur.fetchall()
+
+        cur.close()
+        conn.close()
+            
+        return data[0][0]
 
 class game_action:
     def show_accessToken_not_found_message():
@@ -236,6 +311,7 @@ class game_action:
         return 0
     
     def run_game():
+        #game_action.db_initialize()
         game_action.game_initialize()
         game_action.main_menu_select()
         
