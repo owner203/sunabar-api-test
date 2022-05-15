@@ -91,6 +91,56 @@ class db_action:
         dbname = "chokinsei_db.sqlite3"
 
         return sqlite3.connect(dbname)
+    
+    def db_reset():
+        #データベースをリセットする
+        #デバッグ用途のみ
+        def show_message():
+            print("確定しますか？(y/n)\n>> ", end='')
+
+            return 0
+
+        conn = db_action.conn_initialize()
+        cur = conn.cursor()
+
+        cur.execute('DROP TABLE player_data')
+        cur.execute('CREATE TABLE player_data(id INTEGER PRIMARY KEY AUTOINCREMENT, key STRING, value STRING)')
+        
+        tokenSet = 'INSERT INTO player_data(key, value) values(\"access_token\", \"__accessToken__\")'
+        
+        accessToken = ""
+        while not accessToken:
+            print("トークンを入力してください：\n>> ", end='')
+            accessToken = input()
+            
+            actionSelect = ""
+            while not actionSelect:
+                show_message()
+                actionSelect = input()
+
+                match actionSelect:
+                    case "y":
+                        break
+                    case "n":
+                        accessToken = ""
+                    case _:
+                        actionSelect = ""
+            
+        tokenSet = tokenSet.replace('__accessToken__', accessToken)
+        
+        cur.execute(tokenSet)
+        cur.execute('INSERT INTO player_data(key, value) values(\"main_account_id\", \"\")')
+        cur.execute('INSERT INTO player_data(key, value) values(\"app_account_id\", \"\")')
+        cur.execute('INSERT INTO player_data(key, value) values(\"last_balance\", \"\")')
+        cur.execute('INSERT INTO player_data(key, value) values(\"last_login\", \"\")')
+        cur.execute('INSERT INTO player_data(key, value) values(\"goal_value\", \"\")')
+        
+        conn.commit()
+
+        cur.close()
+        conn.close()
+        
+        return 0
 
     def get_token():
         conn = db_action.conn_initialize()
@@ -311,7 +361,7 @@ class game_action:
         return 0
     
     def run_game():
-        #game_action.db_initialize()
+        db_action.db_reset() #デバッグ用途のみ
         game_action.game_initialize()
         game_action.main_menu_select()
         
