@@ -36,10 +36,10 @@ class sunabar_api:
         else:
             mainAccountId = data_json.get('spAccounts')[0].get('accountId')
             appAccountId = data_json.get('spAccounts')[1].get('accountId')
-        
+
         res.close()
         conn.close()
-        
+
         return (mainAccountId, appAccountId)
 
     def get_balances(accessToken, accountId):
@@ -330,7 +330,6 @@ class game_action:
                 case _:
                     itemSelect = ""
 
-        
         return_status = sunabar_api.transfer_saving(db_action.get_token(), mainAccountId, appAccountId, str(paymentAmount))
         if return_status[0] == str(paymentAmount):
             print("購入しました！\n")
@@ -361,7 +360,7 @@ class game_action:
         return 0
     
     def run_game():
-        db_action.db_reset() #デバッグ用途のみ
+        #db_action.db_reset() #デバッグ用途のみ
         game_action.game_initialize()
         game_action.main_menu_select()
         
