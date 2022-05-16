@@ -221,6 +221,8 @@ class game_action:
         print("0 = ゲーム終了")
         print("アクションを選択してください：\n>> ", end='')
 
+        return 0
+
     def show_spAccount_not_found_message():
         print("先につかいわけ口座を作成してください https://bank.sunabar.gmo-aozora.com/bank/sp-account")
         print("1 = もう一度試す")
@@ -360,7 +362,7 @@ class game_action:
         return 0
     
     def run_game():
-        #db_action.db_reset() #デバッグ用途のみ
+        db_action.db_reset() #デバッグ用途のみ
         game_action.game_initialize()
         game_action.main_menu_select()
         
