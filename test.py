@@ -1,6 +1,7 @@
 import http.client
 import json
 import sqlite3
+import time
 
 class sunabar_api:
     def conn_initialize():
@@ -18,12 +19,48 @@ class sunabar_api:
     
         return headers
 
+    def show_api_server_error():
+        print("APIサーバーに接続できませんでした")
+        print("1 = もう一度試す")
+        print("0 = ゲーム終了")
+        print("アクションを選択してください：\n>> ", end='')
+
+        return 0
+
     def get_accounts_info(accessToken):
         conn = sunabar_api.conn_initialize()
         headers = sunabar_api.headers_initialize(accessToken)
-        conn.request("GET", "/personal/v1/accounts", headers=headers)
 
-        res = conn.getresponse()
+        while True:
+            res_count = 0
+            while True:
+                conn.request("GET", "/personal/v1/accounts", headers=headers)
+                res = conn.getresponse()
+                res_count += 1
+                if res.status == 200 or res_count >= 3:
+                    break
+                res.close()
+                conn.close()
+                time.sleep(1)
+            
+            if res.status == 200:
+                break
+            res.close()
+            conn.close()
+            actionSelect = ""
+            while not actionSelect:
+                sunabar_api.show_api_server_error()
+                actionSelect = input()
+
+                match actionSelect:
+                    case "1":
+                        break
+                    case "0":
+                        print("さようなら！\n")
+                        exit(0)
+                    case _:
+                        actionSelect = ""
+
         data = res.read()
 
         #print(data.decode("utf-8"))
@@ -45,9 +82,37 @@ class sunabar_api:
     def get_balances(accessToken, accountId):
         conn = sunabar_api.conn_initialize()
         headers = sunabar_api.headers_initialize(accessToken)
-        conn.request("GET", "/personal/v1/accounts/balances?accountId=" + accountId, headers=headers)
 
-        res = conn.getresponse()
+        while True:
+            res_count = 0
+            while True:
+                conn.request("GET", "/personal/v1/accounts/balances?accountId=" + accountId, headers=headers)
+                res = conn.getresponse()
+                res_count += 1
+                if res.status == 200 or res_count >= 3:
+                    break
+                res.close()
+                conn.close()
+                time.sleep(1)
+            
+            if res.status == 200:
+                break
+            res.close()
+            conn.close()
+            actionSelect = ""
+            while not actionSelect:
+                sunabar_api.show_api_server_error()
+                actionSelect = input()
+
+                match actionSelect:
+                    case "1":
+                        break
+                    case "0":
+                        print("さようなら！\n")
+                        exit(0)
+                    case _:
+                        actionSelect = ""
+        
         data = res.read()
 
         #print(data.decode("utf-8"))
@@ -68,9 +133,36 @@ class sunabar_api:
         payload = payload.replace('__depositSpAccountId__', depositSpAccountId)
         payload = payload.replace('__paymentAmount__', str(paymentAmount))
 
-        conn.request("POST", "/personal/v1/transfer/spaccounts-transfer", payload, headers)
+        while True:
+            res_count = 0
+            while True:
+                conn.request("POST", "/personal/v1/transfer/spaccounts-transfer", payload, headers)
+                res = conn.getresponse()
+                res_count += 1
+                if res.status == 200 or res_count >= 3:
+                    break
+                res.close()
+                conn.close()
+                time.sleep(1)
 
-        res = conn.getresponse()
+            if res.status == 200:
+                break
+            res.close()
+            conn.close()
+            actionSelect = ""
+            while not actionSelect:
+                sunabar_api.show_api_server_error()
+                actionSelect = input()
+
+                match actionSelect:
+                    case "1":
+                        break
+                    case "0":
+                        print("さようなら！\n")
+                        exit(0)
+                    case _:
+                        actionSelect = ""
+        
         data = res.read()
 
         #print(data.decode("utf-8"))
@@ -362,7 +454,7 @@ class game_action:
         return 0
     
     def run_game():
-        db_action.db_reset() #デバッグ用途のみ
+        #db_action.db_reset() #デバッグ用途のみ
         game_action.game_initialize()
         game_action.main_menu_select()
         
